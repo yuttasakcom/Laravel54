@@ -136,7 +136,35 @@ Route::get('/raw/delete', function() {
 ```
 
 ## Database - Eloquent/ORM
+> docker exec lara php artisan make:model Post
+
 ```php
+===== Model =====
+
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Post extends Model
+{
+    use SoftDeletes;
+
+    protected $table = 'posts';
+    // protected $primaryKey = 'post_id';
+
+    protected $datas = ['deleted_at'];
+
+    // Allow กรณีใช้ Post::create([...])
+    protected $fillable = [
+      'title',
+      'content',
+    ];
+}
+
+=================
 /*
 |--------------------------------------------------------------------------
 | Database Eloquent/ORM
@@ -210,33 +238,6 @@ Route::get('/orm/softdelete', function() {
   Post::find(1)->delete();
 });
 
-===== Model =====
-
-<?php
-
-namespace App;
-
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-
-class Post extends Model
-{
-    use SoftDeletes;
-
-    protected $table = 'posts';
-    // protected $primaryKey = 'post_id';
-
-    protected $datas = ['deleted_at'];
-
-    // Allow กรณีใช้ Post::create([...])
-    protected $fillable = [
-      'title',
-      'content',
-    ];
-}
-
-=================
-
 Route::get('/orm/readsoftdelete', function() {
   // $post = Post::find(6);
   // return $post;
@@ -267,6 +268,44 @@ Route::get('/orm/forcedelete', function() {
 */
 
 // One to One relationship
+===== Model =====
+
+<?php
+
+namespace App;
+
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+
+class User extends Authenticatable
+{
+    use Notifiable;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'name', 'email', 'password',
+    ];
+
+    /**
+     * The attributes that should be hidden for arrays.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'password', 'remember_token',
+    ];
+
+    public function post() {
+      return $this->hasOne('App\Post');
+    }
+}
+
+=================
+
 Route::get('/user/{id}/post', function($id) {
   return User::find($id)->post;
 });
@@ -305,43 +344,5 @@ class Post extends Model
 Route::get('/post/{id}/user', function($id) {
   return Post::find($id)->user;
 });
-
-===== Model =====
-
-<?php
-
-namespace App;
-
-use Illuminate\Notifications\Notifiable;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-
-class User extends Authenticatable
-{
-    use Notifiable;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'name', 'email', 'password',
-    ];
-
-    /**
-     * The attributes that should be hidden for arrays.
-     *
-     * @var array
-     */
-    protected $hidden = [
-        'password', 'remember_token',
-    ];
-
-    public function post() {
-      return $this->hasOne('App\Post');
-    }
-}
-
-=================
 
 ```
