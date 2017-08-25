@@ -1,31 +1,61 @@
 ## Laravel5.4
+> ติดตั้งและพัฒนาโปรเจ็กต์ด้วย Laravel5.4 บน Docker
 
-## Create TLS
-> openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ssl/default.key -out ssl/default.crt
+## Required
+- Docker engine
+- Docker compose
+- Git
 
-## Set Up
-step1
+## Setup
+clone project
 > git clone git@github.com:yuttasakcom/Laravel54.git && cd Laravel54
 
-step2
+create cert
+> mkdir ssl && openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ssl/default.key -out ssl/default.crt
+
+build & run docker
 > docker-compose up -d --build
 
-step3
->cd www/src/ && composer install
+install package
+> cd www/src && composer install --prefer-dist -vvv
+or
+> docker exec lara composer install --prefer-dist -vvv
 
-step4
-> chmod 777 storage -R
+change permission
+> docker exec lara chmod 777 storage -R
 
-step5
-> go to http://localhost:8086 create database 'homestead'
+create database `username: root, password: password`
+> go to http://localhost:8086 create database name 'homestead'
 
-step6
-> php artisan migrate
+create env
+> cd www/src && touch .env
 
-step7
+copy text มาวาง และแก้ไขข้อมูล DB [.env.example](https://raw.githubusercontent.com/laravel/laravel/master/.env.example)
+```
+DB_CONNECTION=mysql
+DB_HOST=mariadb
+DB_PORT=3306
+DB_DATABASE=homestead
+DB_USERNAME=root
+DB_PASSWORD=password
+```
+
+generate key
+> docker exec lara php artisan key:generate
+
+migrate
+> docker exec lara php artisan migrate
+
+good luck!
 > go to http://localhost:8081
 
+## Table of Contents
+- Part 1 Database Design
+  - [Migration](#migration)
+... กำลังจัดทำ
 
+### (สำหรับผู้เริ่มต้น) เรียนรู้การสร้างโปรเจ็กต์ด้วย Laravel5.4<br>
+### Part 1 Database Design
 ## Migration
 create migration
 > php artisan make:migration create_posts_table --create="posts"

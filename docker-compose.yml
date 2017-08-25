@@ -20,7 +20,7 @@ services:
   
   php:
     build: ./www
-    container_name: php
+    container_name: lara
     image: yuttasakcom/php:7.1.8
     volumes:
       - ./www/src:/var/www/html
