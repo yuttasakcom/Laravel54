@@ -61,13 +61,14 @@ good luck!
 create migration
 > php artisan make:migration create_posts_table --create="posts"
 
+ทำการแก้ไขไฟล์ที่ www/src/database/migrations/...create_posts_table.php
 ```php
 public function up()
 {
     Schema::create('posts', function (Blueprint $table) {
         $table->increments('id');
         $table->string('title'); // create column title data type to string
-        $table->text('body'); // create column body data type to text
+        $table->text('content'); // create column content data type to text
         $table->timestamps();
     });
 }
@@ -78,6 +79,7 @@ drop table
 
 migrate column
 > php artisan make:migration add_is_admin_column_to_posts_tables --table="posts"
+
 ```php
 public function up()
 {
@@ -102,10 +104,10 @@ public function down()
 ```php
 // insert
 Route::get('/raw/insert', function(Request $request) {
-  \DB::insert('insert into posts(title, body, is_admin) values(?, ?, ?)', [
-    'test1',
-    'test2',
-    0,
+  \DB::insert('insert into posts(title, content, user_id) values(?, ?, ?)', [
+    'title 1',
+    'content 1',
+    1,
   ]);
 });
 
@@ -121,7 +123,7 @@ Route::get('/raw/read', function() {
 
 // update
 Route::get('/raw/update', function() {
-  $updated = \DB::update('update posts set title="test update" where id = ?', [1]);
+  $updated = \DB::update('update posts set title="update title 1" where id = ?', [1]);
   return $updated;
 });
 
@@ -131,12 +133,215 @@ Route::get('/raw/delete', function() {
   return $deleted;
 });
 
-// Database Eloquent/ORM
-
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-});
 ```
 
 ## Database - Eloquent/ORM
-> php artisan make:model Post
+```php
+/*
+|--------------------------------------------------------------------------
+| Database Eloquent/ORM
+|--------------------------------------------------------------------------
+*/
+Route::get('/orm/read', function() {
+    $posts = Post::all();
+
+    return $posts;
+});
+
+Route::get('/orm/find', function() {
+  $post = Post::find(2);
+
+  return $post->title;
+});
+
+Route::get('/orm/findwhere', function() {
+  $post = Post::where('id', 3)->orderBy('id', 'desc')->take(1)->get();
+
+  return $post;
+});
+
+Route::get('/orm/findmore', function() {
+  // $post = Post::findOrFail(1);
+  $posts = Post::where('users_count', '<', 50)->firstOrFail();
+
+  return $post;
+});
+
+Route::get('/orm/insert', function() {
+  $post = new Post;
+  $post->title = 'New Eloquent title insert';
+  $post->content = 'Wow eloquent';
+  $post->save();
+});
+
+Route::get('/orm/insert2', function() {
+  $post = Post::find(2);
+  $post->title = 'New Eloquent title insert 2';
+  $post->content = 'Wow eloquent';
+  $post->save();
+});
+
+Route::get('/orm/create', function() {
+  Post::create([
+    'title' => 'test create title',
+    'content' => 'test create content'
+  ]);
+});
+
+Route::get('/orm/update', function() {
+  Post::where('id', 2)->where('is_admin', 0)->update([
+    'title' => 'test update title',
+    'content' => 'test update content'
+  ]);
+});
+
+Route::get('/orm/delete', function() {
+  $post = Post::find(1);
+  $post->delete();
+});
+
+Route::get('/orm/delete2', function() {
+  Post::destroy(2);
+  // Post::destroy([2, 3]);
+  // Post::where('is_admin', 0)->delete();
+});
+
+Route::get('/orm/softdelete', function() {
+  Post::find(1)->delete();
+});
+
+===== Model =====
+
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Post extends Model
+{
+    use SoftDeletes;
+
+    protected $table = 'posts';
+    // protected $primaryKey = 'post_id';
+
+    protected $datas = ['deleted_at'];
+
+    // Allow กรณีใช้ Post::create([...])
+    protected $fillable = [
+      'title',
+      'content',
+    ];
+}
+
+=================
+
+Route::get('/orm/readsoftdelete', function() {
+  // $post = Post::find(6);
+  // return $post;
+
+  // $post = Post::withTrashed()->where('id', 3)->get();
+
+  $post = Post::onlyTrashed()->get();
+  return $post;
+});
+
+Route::get('/orm/restore', function() {
+  Post::withTrashed()->where('is_admin', 0)->restore();
+});
+
+Route::get('/orm/forcedelete', function() {
+  Post::withTrashed()->where('is_admin', 0)->forceDelete();
+});
+
+```
+
+## Database Eloquent/ORM Relationships
+
+```php
+/*
+|--------------------------------------------------------------------------
+| Database Eloquent/ORM Relationships
+|--------------------------------------------------------------------------
+*/
+
+// One to One relationship
+Route::get('/user/{id}/post', function($id) {
+  return User::find($id)->post;
+});
+
+===== Model =====
+
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Post extends Model
+{
+    use SoftDeletes;
+
+    protected $table = 'posts';
+    // protected $primaryKey = 'post_id';
+
+    protected $datas = ['deleted_at'];
+
+    // Allow กรณีใช้ Post::create([...])
+    protected $fillable = [
+      'title',
+      'content',
+    ];
+
+    public function user() {
+      return $this->belongsTo('App\User');
+    }
+}
+
+=================
+
+Route::get('/post/{id}/user', function($id) {
+  return Post::find($id)->user;
+});
+
+===== Model =====
+
+<?php
+
+namespace App;
+
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+
+class User extends Authenticatable
+{
+    use Notifiable;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'name', 'email', 'password',
+    ];
+
+    /**
+     * The attributes that should be hidden for arrays.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'password', 'remember_token',
+    ];
+
+    public function post() {
+      return $this->hasOne('App\Post');
+    }
+}
+
+=================
+
+```
