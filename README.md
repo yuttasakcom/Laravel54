@@ -52,7 +52,8 @@ good luck!
 ## Table of Contents
 - Part 1 Database Design
   - [Migration](#migration)
-... กำลังจัดทำ
+
+... กำลังจัดทำเนื้อหา
 
 ### (สำหรับผู้เริ่มต้น) เรียนรู้การสร้างโปรเจ็กต์ด้วย Laravel5.4<br>
 ### Part 1 Database Design
