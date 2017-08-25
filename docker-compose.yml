@@ -15,6 +15,7 @@ services:
     links:
       - php
       - mariadb:mysql
+    privileged: true
     restart: always
   
   php:
@@ -23,6 +24,7 @@ services:
     image: yuttasakcom/php:7.1.8
     volumes:
       - ./www/src:/var/www/html
+    privileged: true
     restart: always
 
   mariadb:
