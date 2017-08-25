@@ -1,5 +1,8 @@
 ## Docker for Laravel5.4
 
+## Create TLS
+> openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ssl/default.key -out ssl/default.crt
+
 ## Set Up
 step1
 > git clone git@github.com:yuttasakcom/Laravel54.git && cd Laravel54
@@ -18,3 +21,6 @@ step5
 
 step6
 > docker exec php php artisan migrate
+
+step7
+> go to http://localhost:8081
