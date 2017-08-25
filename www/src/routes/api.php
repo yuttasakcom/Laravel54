@@ -23,10 +23,10 @@ use App\Post;
 
 // insert
 Route::get('/raw/insert', function(Request $request) {
-  \DB::insert('insert into posts(title, body, is_admin) values(?, ?, ?)', [
-    'test1',
-    'test2',
-    0,
+  \DB::insert('insert into posts(title, content, user_id) values(?, ?, ?)', [
+    'title 1',
+    'content 1',
+    1,
   ]);
 });
 
@@ -43,7 +43,7 @@ Route::get('/raw/read', function() {
 
 // update
 Route::get('/raw/update', function() {
-  $updated = \DB::update('update posts set title="test update" where id = ?', [1]);
+  $updated = \DB::update('update posts set title="update title 1" where id = ?', [1]);
   return $updated;
 });
 

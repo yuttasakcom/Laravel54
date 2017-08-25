@@ -21,9 +21,6 @@ install package
 or
 > docker exec lara composer install --prefer-dist -vvv
 
-change permission
-> docker exec lara chmod 777 storage -R
-
 create database `username: root, password: password`
 > go to http://localhost:8086 create database name 'homestead'
 
@@ -45,6 +42,9 @@ generate key
 
 migrate
 > docker exec lara php artisan migrate
+
+change permission
+> docker exec lara chmod 777 storage -R
 
 good luck!
 > go to http://localhost:8081
