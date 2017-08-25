@@ -15,7 +15,12 @@ use App\Post;
 |
 */
 
-// Database Raw SQL Queries
+/*
+|--------------------------------------------------------------------------
+| Database Raw SQL Queries
+|--------------------------------------------------------------------------
+*/
+
 // insert
 Route::get('/raw/insert', function(Request $request) {
   \DB::insert('insert into posts(title, body, is_admin) values(?, ?, ?)', [
@@ -48,7 +53,11 @@ Route::get('/raw/delete', function() {
   return $deleted;
 });
 
-// Database Eloquent/ORM
+/*
+|--------------------------------------------------------------------------
+| Database Eloquent/ORM
+|--------------------------------------------------------------------------
+*/
 Route::get('/orm/read', function() {
     $posts = Post::all();
 
@@ -133,6 +142,21 @@ Route::get('/orm/restore', function() {
 
 Route::get('/orm/forcedelete', function() {
   Post::withTrashed()->where('is_admin', 0)->forceDelete();
+});
+
+/*
+|--------------------------------------------------------------------------
+| Database Eloquent/ORM Relationships
+|--------------------------------------------------------------------------
+*/
+
+// One to One relationship
+Route::get('/user/{id}/post', function($id) {
+  return User::find($id)->post;
+});
+
+Route::get('/post/{id}/user', function($id) {
+  return Post::find($id)->user;
 });
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
