@@ -1,0 +1,44 @@
+version: '3'
+
+services:
+
+  nginx:
+    build: .
+    container_name: nginx
+    image: yuttasakcom/nginx:1.13.3
+    ports:
+      - "8081:80"
+      - "8443:443"
+    volumes:
+      - ./www/src:/var/www/html
+      - ./ssl:/etc/nginx/ssl
+    links:
+      - php
+      - mariadb:mysql
+    restart: always
+  
+  php:
+    build: ./www
+    container_name: php
+    image: yuttasakcom/php:7.1.8
+    volumes:
+      - ./www/src:/var/www/html
+    restart: always
+
+  mariadb:
+    image: mariadb:10.2.8
+    container_name: mariadb
+    volumes:
+      - ./data/mariadb:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+    restart: always
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:4.7.3-1
+    container_name: pma
+    links:
+      - mariadb:db
+    ports:
+      - 8086:80
+    restart: always
