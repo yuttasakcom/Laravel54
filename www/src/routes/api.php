@@ -87,6 +87,7 @@ Route::get('/orm/insert', function() {
   $post = new Post;
   $post->title = 'New Eloquent title insert';
   $post->content = 'Wow eloquent';
+  $post->user_id = 1;
   $post->save();
 });
 
@@ -94,13 +95,15 @@ Route::get('/orm/insert2', function() {
   $post = Post::find(2);
   $post->title = 'New Eloquent title insert 2';
   $post->content = 'Wow eloquent';
+  $post->user_id = 1;
   $post->save();
 });
 
 Route::get('/orm/create', function() {
   Post::create([
     'title' => 'test create title',
-    'content' => 'test create content'
+    'content' => 'test create content',
+    'user_id' => 1,
   ]);
 });
 
@@ -151,8 +154,8 @@ Route::get('/orm/forcedelete', function() {
 */
 
 // One to One relationship
-Route::get('/user/{id}/post', function($id) {
-  return User::find($id)->post;
+Route::get('/user/{id}/posts', function($id) {
+  return User::find($id)->posts;
 });
 
 Route::get('/post/{id}/user', function($id) {
@@ -161,4 +164,79 @@ Route::get('/post/{id}/user', function($id) {
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
+});
+
+// One to Many relationship
+Route::get('/posts', function() {
+    $user = User::find(1);
+
+    foreach ($user->posts as $post) {
+      echo $post->title . "<br>";
+    }
+
+    // return $user;
+});
+
+// Many to Many relationship
+// php artisan make:model Role -m
+// php artisan make:migration create_users-roles_table --create=role_user
+Route::get('/user/{id}/role', function($id) {
+  // $user = User::find($id);
+  // foreach ($user->roles as $role) {
+  //   echo $role->name . "<br>";
+  // }
+  $user = User::find($id)->roles()->orderBy('name', 'asc')->get();
+  return $user;
+});
+
+// Accessing the intermediate table / pivot
+Route::get('/user/pivot', function() {
+  $user = User::find(1);
+
+  foreach ($user->roles as $role) {}
+    echo $role->pivot->created_at . "<br>";
+});
+
+// Has many through relationship
+// php artisan make:model Country -m
+// php artisan make:migration add_country_id_column_to_users --table=users
+// sudo chown yo www/src/* -R
+// php artisan migrate
+Route::get('/user/country/{id}/post', function($id) {
+  // $country = \App\Country::find($id);
+  // foreach ($country->posts as $post) {
+  //   return $post->title;
+  // }
+  return \App\Country::find($id)->posts()->get();
+});
+
+// Polymorphic relationship
+// php artisan make:model Photo -m
+// sudo chown yo www/src/* -R
+Route::get('/user/photos', function() {
+    $photos = User::find(1)->photos()->get();
+    return $photos;
+});
+Route::get('/post/photos', function() {
+  $photos = Post::find(3)->photos()->get();
+  return $photos;
+});
+
+// Polymorphic relation the inverse
+Route::get('/photo/{id}', function($id) {
+    $morph = \App\Photo::find($id);
+    return $morph->imageable;
+});
+
+// Polymorphic relation many to many
+// php artisan make:model Video -m
+// php artisan make:model Tags -m
+// php artisan make:model Taggables -m
+// sudo chown yo www/src/* -R
+// php artisan migrate
+Route::get('/post/tag', function() {
+  return Post::find(5)->tags()->get();
+});
+Route::get('/tag/post', function() {
+  return \App\Tag::find(2)->posts()->get();
 });
